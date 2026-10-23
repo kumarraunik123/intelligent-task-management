@@ -1,0 +1,590 @@
+
+/* =========================
+   Global Styles
+========================= */
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f3f5f9;
+  color: #1f2937;
+}
+
+main {
+  width: min(1100px, 92%);
+  margin: 40px auto;
+}
+
+h1 {
+  text-align: center;
+  color: #1d4ed8;
+  margin-bottom: 30px;
+}
+
+h2 {
+  margin-top: 28px;
+  color: #111827;
+}
+
+/* =========================
+   Task Form
+========================= */
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 24px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+label {
+  font-weight: 600;
+  margin-top: 6px;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font: inherit;
+  background: #ffffff;
+  color: #1f2937;
+}
+
+textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid #93c5fd;
+  border-color: #2563eb;
+}
+
+button {
+  padding: 10px 14px;
+  border: none;
+  border-radius: 6px;
+  background: #2563eb;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+form button {
+  margin-top: 12px;
+}
+
+button:hover {
+  background: #1d4ed8;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* =========================
+   Task Dashboard
+========================= */
+
+.task-summary {
+  margin: 24px 0;
+}
+
+.task-summary h2 {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+}
+
+.summary-card {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.summary-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.summary-card h3 {
+  margin: 0 0 12px;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.summary-card p {
+  margin: 0;
+  color: #0f172a;
+  font-size: 28px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+/* =========================
+   Search and Filters
+========================= */
+
+.task-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 16px 0 24px;
+}
+
+.task-filters input,
+.task-filters select {
+  flex: 1 1 160px;
+  width: auto;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.task-filters button {
+  flex: 0 0 auto;
+  padding: 10px 16px;
+}
+
+/* =========================
+   Task List and Items
+========================= */
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  margin: 14px 0;
+  padding: 20px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
+  overflow-wrap: anywhere;
+}
+
+li h3 {
+  margin-top: 0;
+  color: #111827;
+}
+
+li p {
+  line-height: 1.5;
+}
+
+li button {
+  margin-top: 8px;
+}
+
+li button:last-of-type {
+  background: #dc2626;
+}
+
+li button:last-of-type:hover {
+  background: #b91c1c;
+}
+
+small {
+  display: inline-block;
+  margin-top: 12px;
+  color: #6b7280;
+}
+
+/* =========================
+   Deadline Badges
+========================= */
+
+.due-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.due-overdue {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.due-today {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.due-upcoming {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.due-completed {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.no-due-date {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+/* =========================
+   Form Feedback and Errors
+========================= */
+
+[role="alert"] {
+  padding: 12px;
+  color: #991b1b;
+  background: #fee2e2;
+  border-radius: 6px;
+  overflow-wrap: anywhere;
+}
+
+.form-error {
+  padding: 10px;
+  border-radius: 6px;
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.form-success {
+  padding: 10px;
+  border-radius: 6px;
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* =========================
+   Responsive Layout
+========================= */
+
+@media (max-width: 600px) {
+  main {
+    margin: 20px auto;
+  }
+
+  form,
+  li {
+    padding: 16px;
+  }
+
+  h1 {
+    font-size: 25px;
+  }
+
+  .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .summary-card {
+    padding: 14px;
+  }
+
+  .summary-card p {
+    font-size: 24px;
+  }
+
+  .task-filters {
+    flex-direction: column;
+  }
+
+  .task-filters input,
+  .task-filters select,
+  .task-filters button {
+    width: 100%;
+    flex: auto;
+  }
+
+  li button {
+    max-width: 100%;
+  }
+}   
+
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.pagination button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background-color: #2563eb;
+  color: white;
+  cursor: pointer;
+}
+
+.pagination button:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.pagination span {
+  font-weight: 600;
+}  
+
+
+/* Task Statistics Dashboard */
+.task-summary {
+  margin: 24px 0;
+}
+
+.task-summary h2 {
+  margin-bottom: 16px;
+  color: #1f2937;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.summary-card {
+  padding: 20px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.summary-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.summary-card h3 {
+  margin: 0 0 10px;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.summary-card p {
+  margin: 0;
+  color: #111827;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+/* Tablet */
+@media (max-width: 768px) {
+  .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-card {
+    padding: 16px;
+  }
+}     
+
+/* Task Completion Progress */
+.progress-section {
+  margin-top: 20px;
+  padding: 20px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.progress-header h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.progress-header span {
+  font-weight: 700;
+}
+
+.progress-track {
+  width: 100%;
+  height: 12px;
+  overflow: hidden;
+  background: #e5e7eb;
+  border-radius: 999px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #16a34a;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.progress-section > p {
+  margin: 10px 0 0;
+  color: #6b7280;
+  font-size: 14px;
+}   
+
+
+/* Day 12: Task List UX improvements */
+
+.task-list-message {
+  text-align: center;
+  padding: 24px;
+  margin: 20px 0;
+  color: #475569;
+  font-size: 16px;
+}
+
+.task-list-empty {
+  text-align: center;
+  padding: 32px 20px;
+  margin: 20px 0;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+}
+
+.task-list-empty h3 {
+  margin: 0 0 10px;
+  color: #1e293b;
+  font-size: 20px;
+}
+
+.task-list-empty p {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin: 24px 0;
+  flex-wrap: wrap;
+}
+
+.pagination button {
+  padding: 9px 18px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1e293b;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s ease;
+}
+
+.pagination button:hover:not(:disabled) {
+  background: #e2e8f0;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination span {
+  color: #475569;
+  font-size: 14px;
+}   
+
+
+/* Day 12: API error message */
+
+.app-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 16px 0;
+  padding: 12px 16px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.app-error p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.app-error button {
+  padding: 6px 12px;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  background: white;
+  color: #991b1b;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.app-error button:hover {
+  background: #fee2e2;
+}  
+
+
+
+
+
+
+
+
+
+
+
+
+
