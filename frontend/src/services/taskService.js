@@ -1,6 +1,23 @@
 
 const API_URL = "http://localhost:5000/api/tasks";
 
+// Get the JWT token saved after login.
+function getAuthHeaders(includeJson = false) {
+  const token = localStorage.getItem("token");
+
+  const headers = {};
+
+  if (includeJson) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  return headers;
+}
+
 // GET tasks with server-side filtering and pagination
 export async function getTasks(
   page = 1,
@@ -17,7 +34,13 @@ export async function getTasks(
     sortBy: filters.sortBy || "newest",
   });
 
-  const response = await fetch(`${API_URL}?${params.toString()}`);
+  const response = await fetch(
+    `${API_URL}?${params.toString()}`,
+    {
+      headers: getAuthHeaders(),
+    }
+  );
+
   const result = await response.json();
 
   if (!response.ok || !result.success) {
@@ -37,9 +60,7 @@ export async function getTasks(
 export async function createTask(taskData) {
   const response = await fetch(API_URL, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getAuthHeaders(true),
     body: JSON.stringify(taskData),
   });
 
@@ -56,9 +77,7 @@ export async function createTask(taskData) {
 export async function updateTask(taskId, updates) {
   const response = await fetch(`${API_URL}/${taskId}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getAuthHeaders(true),
     body: JSON.stringify(updates),
   });
 
@@ -75,6 +94,7 @@ export async function updateTask(taskId, updates) {
 export async function deleteTask(taskId) {
   const response = await fetch(`${API_URL}/${taskId}`, {
     method: "DELETE",
+    headers: getAuthHeaders(),
   });
 
   const result = await response.json();
@@ -84,5 +104,4 @@ export async function deleteTask(taskId) {
   }
 
   return result;
-}   
-
+}

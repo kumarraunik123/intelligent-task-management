@@ -1,4 +1,4 @@
- 
+
 import { useState, useEffect } from "react";
 import "./App.css";
 
@@ -6,11 +6,22 @@ import TaskForm from "./components/TaskForm";
 import TaskList from "./components/TaskList";
 import TaskFilters from "./components/TaskFilters";
 import TaskSummary from "./components/TaskSummary";
+import AuthForm from "./components/AuthForm";
 
 import useTasks from "./hooks/useTasks";
 import useTaskFilters from "./hooks/useTaskFilters";
 
+import {
+  getCurrentUser,
+  isLoggedIn,
+  logoutUser,
+} from "./services/authService";
+
 function App() {
+  const [user, setUser] = useState(() =>
+    isLoggedIn() ? getCurrentUser() : null
+  );
+
   const {
     tasks,
     loading,
@@ -49,10 +60,16 @@ function App() {
     sortBy,
   };
 
-  // Load tasks when filters or sorting change.
   useEffect(() => {
+    if (!user || !isLoggedIn()) {
+      return;
+    }
+
     loadTasks(1, filters);
+
+    // Reload tasks when filters or sorting change.
   }, [
+    user,
     searchTerm,
     statusFilter,
     priorityFilter,
@@ -61,7 +78,21 @@ function App() {
     loadTasks,
   ]);
 
-  // Handle pagination.
+  function handleAuthenticated(authenticatedUser) {
+    setUser(authenticatedUser || getCurrentUser());
+    setEditingTask(null);
+    clearFilters();
+    setError("");
+  }
+
+  function handleLogout() {
+    logoutUser();
+    setUser(null);
+    setEditingTask(null);
+    setError("");
+    clearFilters();
+  }
+
   async function handlePageChange(page) {
     if (page < 1 || page > totalPages || loading) {
       return;
@@ -70,31 +101,27 @@ function App() {
     await loadTasks(page, filters);
   }
 
-  // Create a task and allow errors to reach TaskForm.
   async function handleTaskCreated(taskData) {
     setError("");
     await addTask(taskData);
   }
 
-  // Keep edit mode open if updating fails.
   async function handleTaskUpdated(taskId, updates) {
     setError("");
     await editTask(taskId, updates);
     setEditingTask(null);
   }
 
-  // Handle task status updates.
   async function handleStatusChange(taskId, updates) {
     setError("");
 
     try {
       await editTask(taskId, updates);
     } catch {
-      // The useTasks hook records the API error.
+      // useTasks records the API error.
     }
   }
 
-  // Delete a task only after confirmation.
   async function handleTaskDelete(taskId) {
     const confirmed = window.confirm(
       "Are you sure you want to delete this task?"
@@ -111,27 +138,38 @@ function App() {
         setEditingTask(null);
       }
     } catch {
-      // The useTasks hook records the API error.
+      // useTasks records the API error.
     }
   }
 
-  // Clear filters.
   function handleClearFilters() {
     clearFilters();
     setError("");
   }
 
-  // Retry loading the current page with the active filters.
   async function handleRetry() {
     await loadTasks(currentPage, filters);
   }
 
+  if (!user || !isLoggedIn()) {
+    return <AuthForm onAuthenticated={handleAuthenticated} />;
+  }
+
   return (
     <main>
-      <h1>Intelligent Task Management</h1>
+      <header className="app-header">
+        <div>
+          <h1>Intelligent Task Management</h1>
+          <p>
+            Welcome, {user.name || user.email || "User"}
+          </p>
+        </div>
 
-      {/* Show the global error only when tasks exist.
-          TaskList displays loading errors when the list is empty. */}
+        <button type="button" onClick={handleLogout}>
+          Log Out
+        </button>
+      </header>
+
       {error && tasks.length > 0 && (
         <div className="app-error" role="alert">
           <p>{error}</p>
@@ -185,18 +223,4 @@ function App() {
   );
 }
 
-export default App;  
-
- 
-
-
-
-
-     
-   
-  
- 
-
-   
-
-
+export default App;

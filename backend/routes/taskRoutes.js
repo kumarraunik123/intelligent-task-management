@@ -5,35 +5,7 @@ const Task = require("../models/Task");
 
 const router = express.Router();
 
-// Helper: format validation errors
- /**function handleTaskError(error, res, defaultMessage) {
-  if (error.name === "ValidationError") {
-    return res.status(400).json({
-      success: false,
-      message: "Invalid task data. Please check your input.",
-      errors: Object.values(error.errors).map(
-        (item) => item.message
-      ),
-    });
-  }
-
-  if (error.name === "CastError") {
-    return res.status(400).json({
-      success: false,
-      message: "Invalid value provided for a task field.",
-      errors: [error.message],
-    });
-  }
-
-  console.error(defaultMessage, error.message);
-
-  return res.status(500).json({
-    success: false,
-    message: defaultMessage,
-  });
-} 
-**/ 
-
+// Helper: handle validation and unexpected errors
 function handleTaskError(error, res, next, defaultMessage) {
   if (error.name === "ValidationError") {
     return res.status(400).json({
@@ -53,15 +25,23 @@ function handleTaskError(error, res, next, defaultMessage) {
     });
   }
 
-  // Send unexpected errors to centralized error middleware
   error.message = `${defaultMessage}: ${error.message}`;
   return next(error);
-}  
+}
 
-// CREATE a task
-router.post("/", async (req, res) => {
+// CREATE a task owned by the authenticated user
+router.post("/", async (req, res, next) => {
   try {
-    const task = await Task.create(req.body);
+    const { title, description, priority, status, dueDate } = req.body;
+
+    const task = await Task.create({
+      title,
+      description,
+      priority,
+      status,
+      dueDate,
+      owner: req.user.userId,
+    });
 
     return res.status(201).json({
       success: true,
@@ -71,13 +51,14 @@ router.post("/", async (req, res) => {
     return handleTaskError(
       error,
       res,
+      next,
       "Failed to create task"
     );
   }
 });
 
-// GET tasks with search, filters, sorting, and pagination
-router.get("/", async (req, res) => {
+// GET the authenticated user's tasks with filters and pagination
+router.get("/", async (req, res, next) => {
   try {
     const page = Number(req.query.page ?? 1);
     const limit = Number(req.query.limit ?? 5);
@@ -131,8 +112,10 @@ router.get("/", async (req, res) => {
       });
     }
 
-    // Build the MongoDB filter
-    const filter = {};
+    // IMPORTANT: only return tasks belonging to this user
+    const filter = {
+      owner: new mongoose.Types.ObjectId(req.user.userId),
+    };
 
     // Search by title, ignoring letter case
     if (search.trim()) {
@@ -154,7 +137,7 @@ router.get("/", async (req, res) => {
       filter.priority = priority;
     }
 
-    // Calculate the current date in India Standard Time
+    // Calculate today's date in India Standard Time
     const dateParts = new Intl.DateTimeFormat("en-CA", {
       timeZone: "Asia/Kolkata",
       year: "numeric",
@@ -177,7 +160,7 @@ router.get("/", async (req, res) => {
       todayStart.getTime() + 24 * 60 * 60 * 1000
     );
 
-    // Apply due-date filtering before pagination
+    // Apply due-date filters
     if (dueDate === "overdue") {
       filter.dueDate = { $lt: todayStart };
 
@@ -247,7 +230,7 @@ router.get("/", async (req, res) => {
         .limit(limit);
     }
 
-    // Count only matching tasks
+    // Count only this user's matching tasks
     const totalTasks = await Task.countDocuments(filter);
     const totalPages = Math.ceil(totalTasks / limit);
 
@@ -264,13 +247,14 @@ router.get("/", async (req, res) => {
     return handleTaskError(
       error,
       res,
+      next,
       "Failed to fetch tasks"
     );
   }
 });
 
-// GET one task by ID
-router.get("/:id", async (req, res) => {
+// GET one task belonging to the authenticated user
+router.get("/:id", async (req, res, next) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({
@@ -279,7 +263,10 @@ router.get("/:id", async (req, res) => {
       });
     }
 
-    const task = await Task.findById(req.params.id);
+    const task = await Task.findOne({
+      _id: req.params.id,
+      owner: req.user.userId,
+    });
 
     if (!task) {
       return res.status(404).json({
@@ -296,13 +283,14 @@ router.get("/:id", async (req, res) => {
     return handleTaskError(
       error,
       res,
+      next,
       "Failed to fetch task"
     );
   }
 });
 
-// UPDATE a task
-router.put("/:id", async (req, res) => {
+// UPDATE only a task belonging to the authenticated user
+router.put("/:id", async (req, res, next) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({
@@ -311,9 +299,22 @@ router.put("/:id", async (req, res) => {
       });
     }
 
-    const task = await Task.findByIdAndUpdate(
-      req.params.id,
-      req.body,
+    // Allow only editable task fields; never allow owner changes
+    const { title, description, priority, status, dueDate } = req.body;
+    const updates = {};
+
+    if (title !== undefined) updates.title = title;
+    if (description !== undefined) updates.description = description;
+    if (priority !== undefined) updates.priority = priority;
+    if (status !== undefined) updates.status = status;
+    if (dueDate !== undefined) updates.dueDate = dueDate;
+
+    const task = await Task.findOneAndUpdate(
+      {
+        _id: req.params.id,
+        owner: req.user.userId,
+      },
+      { $set: updates },
       {
         new: true,
         runValidators: true,
@@ -335,13 +336,14 @@ router.put("/:id", async (req, res) => {
     return handleTaskError(
       error,
       res,
+      next,
       "Failed to update task"
     );
   }
 });
 
-// DELETE a task
-router.delete("/:id", async (req, res) => {
+// DELETE only a task belonging to the authenticated user
+router.delete("/:id", async (req, res, next) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({
@@ -350,7 +352,10 @@ router.delete("/:id", async (req, res) => {
       });
     }
 
-    const task = await Task.findByIdAndDelete(req.params.id);
+    const task = await Task.findOneAndDelete({
+      _id: req.params.id,
+      owner: req.user.userId,
+    });
 
     if (!task) {
       return res.status(404).json({
@@ -367,12 +372,10 @@ router.delete("/:id", async (req, res) => {
     return handleTaskError(
       error,
       res,
+      next,
       "Failed to delete task"
     );
   }
 });
 
-module.exports = router;  
-  
-
-
+module.exports = router;

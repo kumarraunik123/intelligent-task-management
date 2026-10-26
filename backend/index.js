@@ -4,7 +4,11 @@ const cors = require("cors");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 
+require("dotenv").config();
+
 const taskRoutes = require("./routes/taskRoutes");
+const authRoutes = require("./routes/authRoutes");
+const authMiddleware = require("./middleware/authMiddleware");
 const requestLogger = require("./middleware/requestLogger");
 const connectDB = require("./db");
 
@@ -13,12 +17,10 @@ const {
   errorHandler,
 } = require("./middleware/errorMiddleware");
 
-require("dotenv").config();
-
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Rate limit task API requests
+// Rate limit API requests
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 100,
@@ -30,7 +32,7 @@ const apiLimiter = rateLimit({
   },
 });
 
-// Security and request middleware
+// Security middleware
 app.use(helmet());
 
 app.use(
@@ -50,8 +52,11 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// Task routes with rate limiting
-app.use("/api/tasks", apiLimiter, taskRoutes);
+// Public authentication routes
+app.use("/api/auth", apiLimiter, authRoutes);
+
+// Protected task routes: a valid JWT is required
+app.use("/api/tasks", apiLimiter, authMiddleware, taskRoutes);
 
 // Handle unknown routes
 app.use(notFoundHandler);
@@ -76,8 +81,4 @@ if (require.main === module) {
   startServer();
 }
 
-module.exports = app;          
-      
-
-
-  
+module.exports = app;
