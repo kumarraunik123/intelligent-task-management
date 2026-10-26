@@ -16,9 +16,10 @@ function TaskList({
   // Loading state
   if (loading) {
     return (
-      <p className="task-list-message" role="status">
-        Loading tasks...
-      </p>
+      <div className="task-list-state" role="status">
+        <div className="loading-spinner" aria-hidden="true" />
+        <p>Loading your tasks...</p>
+      </div>
     );
   }
 
@@ -28,9 +29,12 @@ function TaskList({
       <div className="task-list-error" role="alert">
         <h3>Unable to load tasks</h3>
         <p>{error}</p>
-
-        <button type="button" onClick={onRetry}>
-          Retry
+        <button
+          className="primary-button"
+          type="button"
+          onClick={onRetry}
+        >
+          Try again
         </button>
       </div>
     );
@@ -40,16 +44,20 @@ function TaskList({
   if (tasks.length === 0) {
     return (
       <div className="task-list-empty">
+        <div className="empty-state-icon" aria-hidden="true">
+          ✓
+        </div>
         <h3>No tasks found</h3>
         <p>
-          Try changing your search or filters, or create a new task.
+          Try changing your search or filters, or create a new task
+          to get started.
         </p>
       </div>
     );
   }
 
   return (
-    <div>
+    <section className="task-list-section" aria-label="Task results">
       <ul className="task-list">
         {tasks.map((task) => (
           <TaskItem
@@ -63,36 +71,33 @@ function TaskList({
       </ul>
 
       {totalPages > 1 && (
-        <div className="pagination">
+        <nav className="pagination" aria-label="Task list pagination">
           <button
+            className="pagination-button"
             type="button"
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage <= 1 || loading}
           >
-            Previous
+            ← Previous
           </button>
 
-          <span>
-            Page {currentPage} of {totalPages}
+          <span className="pagination-info">
+            Page <strong>{currentPage}</strong> of{" "}
+            <strong>{totalPages}</strong>
           </span>
 
           <button
+            className="pagination-button"
             type="button"
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage >= totalPages || loading}
           >
-            Next
+            Next →
           </button>
-        </div>
+        </nav>
       )}
-    </div>
+    </section>
   );
 }
 
-export default TaskList;  
-
-
-
-
-
-
+export default TaskList;

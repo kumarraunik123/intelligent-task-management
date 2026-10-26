@@ -100,7 +100,9 @@ function TaskForm({
       return;
     }
 
-    if (!["pending", "in-progress", "completed"].includes(status)) {
+    if (
+      !["pending", "in-progress", "completed"].includes(status)
+    ) {
       setError("Please select a valid status.");
       submissionLock.current = false;
       return;
@@ -154,7 +156,9 @@ function TaskForm({
     } catch (err) {
       setError(
         err.message ||
-          `Unable to ${isEditing ? "update" : "create"} task. Please try again.`
+          `Unable to ${
+            isEditing ? "update" : "create"
+          } task. Please try again.`
       );
     } finally {
       submissionLock.current = false;
@@ -173,109 +177,145 @@ function TaskForm({
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>{isEditing ? "Edit Task" : "Create a Task"}</h2>
+    <section className="task-form-section">
+      <div className="task-form-heading">
+        <div>
+          <p className="section-eyebrow">
+            {isEditing ? "UPDATE YOUR WORK" : "STAY ORGANIZED"}
+          </p>
+          <h2>{isEditing ? "Edit Task" : "Create a Task"}</h2>
+          <p className="section-description">
+            {isEditing
+              ? "Update the details of your task below."
+              : "Add a new task and keep your work moving forward."}
+          </p>
+        </div>
+      </div>
 
-      {error && (
-        <p role="alert" className="form-error">
-          {error}
-        </p>
-      )}
+      <form className="task-form" onSubmit={handleSubmit}>
+        {error && (
+          <p role="alert" className="form-message form-error">
+            {error}
+          </p>
+        )}
 
-      {success && (
-        <p role="status" className="form-success">
-          {success}
-        </p>
-      )}
+        {success && (
+          <p role="status" className="form-message form-success">
+            {success}
+          </p>
+        )}
 
-      <label htmlFor="task-title">Task title</label>
-      <input
-        id="task-title"
-        type="text"
-        value={title}
-        onChange={(event) => {
-          setTitle(event.target.value);
-          setError("");
-          setSuccess("");
-        }}
-        placeholder="Enter task title"
-        maxLength={150}
-        required
-      />
+        <div className="task-form-field task-title-field">
+          <label htmlFor="task-title">Task title</label>
+          <input
+            id="task-title"
+            type="text"
+            value={title}
+            onChange={(event) => {
+              setTitle(event.target.value);
+              setError("");
+              setSuccess("");
+            }}
+            placeholder="e.g. Complete project documentation"
+            maxLength={150}
+            required
+          />
+          <span className="field-hint">
+            {title.length}/150 characters
+          </span>
+        </div>
 
-      <label htmlFor="task-description">Description</label>
-      <textarea
-        id="task-description"
-        value={description}
-        onChange={(event) => {
-          setDescription(event.target.value);
-          setError("");
-          setSuccess("");
-        }}
-        placeholder="Enter task description"
-        maxLength={1000}
-      />
+        <div className="task-form-field task-description-field">
+          <label htmlFor="task-description">Description</label>
+          <textarea
+            id="task-description"
+            value={description}
+            onChange={(event) => {
+              setDescription(event.target.value);
+              setError("");
+              setSuccess("");
+            }}
+            placeholder="Add details, notes, or next steps..."
+            maxLength={1000}
+            rows={4}
+          />
+          <span className="field-hint">
+            {description.length}/1000 characters
+          </span>
+        </div>
 
-      <label htmlFor="task-priority">Priority</label>
-      <select
-        id="task-priority"
-        value={priority}
-        onChange={(event) => setPriority(event.target.value)}
-      >
-        <option value="low">Low</option>
-        <option value="medium">Medium</option>
-        <option value="high">High</option>
-      </select>
+        <div className="task-form-row">
+          <div className="task-form-field">
+            <label htmlFor="task-priority">Priority</label>
+            <select
+              id="task-priority"
+              value={priority}
+              onChange={(event) => setPriority(event.target.value)}
+            >
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
 
-      <label htmlFor="task-status">Status</label>
-      <select
-        id="task-status"
-        value={status}
-        onChange={(event) => setStatus(event.target.value)}
-      >
-        <option value="pending">Pending</option>
-        <option value="in-progress">In Progress</option>
-        <option value="completed">Completed</option>
-      </select>
+          <div className="task-form-field">
+            <label htmlFor="task-status">Status</label>
+            <select
+              id="task-status"
+              value={status}
+              onChange={(event) => setStatus(event.target.value)}
+            >
+              <option value="pending">Pending</option>
+              <option value="in-progress">In Progress</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
 
-      <label htmlFor="task-due-date">Due date</label>
-      <input
-        id="task-due-date"
-        type="date"
-        value={dueDate}
-        onChange={(event) => {
-          setDueDate(event.target.value);
-          setError("");
-          setSuccess("");
-        }}
-      />
+          <div className="task-form-field">
+            <label htmlFor="task-due-date">Due date</label>
+            <input
+              id="task-due-date"
+              type="date"
+              value={dueDate}
+              min={new Date().toLocaleDateString("en-CA")}
+              onChange={(event) => {
+                setDueDate(event.target.value);
+                setError("");
+                setSuccess("");
+              }}
+            />
+          </div>
+        </div>
 
-      <button type="submit" disabled={submitting}>
-        {submitting
-          ? isEditing
-            ? "Updating..."
-            : "Adding..."
-          : isEditing
-            ? "Save Changes"
-            : "Add Task"}
-      </button>
+        <div className="task-form-actions">
+          <button
+            className="primary-button"
+            type="submit"
+            disabled={submitting}
+          >
+            {submitting
+              ? isEditing
+                ? "Saving changes..."
+                : "Adding task..."
+              : isEditing
+                ? "Save Changes"
+                : "＋ Add Task"}
+          </button>
 
-      {isEditing && (
-        <button
-          type="button"
-          onClick={handleCancel}
-          disabled={submitting}
-        >
-          Cancel Edit
-        </button>
-      )}
-    </form>
+          {isEditing && (
+            <button
+              className="secondary-button"
+              type="button"
+              onClick={handleCancel}
+              disabled={submitting}
+            >
+              Cancel Edit
+            </button>
+          )}
+        </div>
+      </form>
+    </section>
   );
 }
 
-export default TaskForm;  
-
-  
-
-
-
+export default TaskForm;

@@ -39,31 +39,89 @@ function TaskSummary({ tasks }) {
       : Math.round((completedTasks / totalTasks) * 100);
 
   const summaries = [
-    { label: "Total Tasks", value: totalTasks },
-    { label: "Pending", value: pendingTasks },
-    { label: "In Progress", value: inProgressTasks },
-    { label: "Completed", value: completedTasks },
-    { label: "Overdue", value: overdueTasks },
-    { label: "Completion Rate", value: `${completionRate}%` },
+    {
+      label: "Total Tasks",
+      value: totalTasks,
+      style: "total",
+      description: "Tasks on this page",
+    },
+    {
+      label: "Pending",
+      value: pendingTasks,
+      style: "pending",
+      description: "Waiting to start",
+    },
+    {
+      label: "In Progress",
+      value: inProgressTasks,
+      style: "in-progress",
+      description: "Currently working",
+    },
+    {
+      label: "Completed",
+      value: completedTasks,
+      style: "completed",
+      description: "Successfully finished",
+    },
+    {
+      label: "Overdue",
+      value: overdueTasks,
+      style: "overdue",
+      description: "Past their due date",
+    },
+    {
+      label: "Completion Rate",
+      value: `${completionRate}%`,
+      style: "completion",
+      description: "Completed on this page",
+    },
   ];
 
   return (
-    <section className="task-summary">
-      <h2>Task Overview</h2>
+    <section className="task-summary" aria-labelledby="overview-heading">
+      <div className="section-heading">
+        <div>
+          <p className="section-eyebrow">YOUR WORKSPACE</p>
+          <h2 id="overview-heading">Task Overview</h2>
+          <p className="section-description">
+            Track your tasks and monitor your progress.
+          </p>
+        </div>
+      </div>
 
       <div className="summary-grid">
         {summaries.map((summary) => (
-          <article className="summary-card" key={summary.label}>
-            <h3>{summary.label}</h3>
-            <p>{summary.value}</p>
+          <article
+            className={`summary-card summary-card-${summary.style}`}
+            key={summary.label}
+          >
+            <div className="summary-card-top">
+              <h3>{summary.label}</h3>
+              <span
+                className={`summary-indicator summary-indicator-${summary.style}`}
+                aria-hidden="true"
+              />
+            </div>
+
+            <p className="summary-value">{summary.value}</p>
+
+            <p className="summary-description">
+              {summary.description}
+            </p>
           </article>
         ))}
       </div>
 
       <div className="progress-section">
         <div className="progress-header">
-          <h3>Overall Progress</h3>
-          <span>{completionRate}%</span>
+          <div>
+            <h3>Overall Progress</h3>
+            <p>Keep going — every completed task counts.</p>
+          </div>
+
+          <span className="progress-percentage">
+            {completionRate}%
+          </span>
         </div>
 
         <div
@@ -80,7 +138,7 @@ function TaskSummary({ tasks }) {
           />
         </div>
 
-        <p>
+        <p className="progress-caption">
           {completedTasks} of {totalTasks} tasks completed
         </p>
       </div>
@@ -88,5 +146,4 @@ function TaskSummary({ tasks }) {
   );
 }
 
-export default TaskSummary;  
-
+export default TaskSummary;

@@ -14,15 +14,17 @@ function getDueDateStatus(dueDate, status) {
     return { label: "Invalid due date", className: "no-due-date" };
   }
 
+  const dueDay = new Date(due);
   const today = new Date();
-  due.setHours(0, 0, 0, 0);
+
+  dueDay.setHours(0, 0, 0, 0);
   today.setHours(0, 0, 0, 0);
 
-  if (due < today) {
+  if (dueDay < today) {
     return { label: "Overdue", className: "due-overdue" };
   }
 
-  if (due.getTime() === today.getTime()) {
+  if (dueDay.getTime() === today.getTime()) {
     return { label: "Due Today", className: "due-today" };
   }
 
@@ -51,79 +53,103 @@ function TaskItem({
 }) {
   const dueDateStatus = getDueDateStatus(task.dueDate, task.status);
 
+  const priority = ["low", "medium", "high"].includes(task.priority)
+    ? task.priority
+    : "medium";
+
+  const statusLabels = {
+    pending: "Pending",
+    "in-progress": "In Progress",
+    completed: "Completed",
+  };
+
+  const statusLabel = statusLabels[task.status] || "Pending";
+
   function handleEdit() {
-    console.log("EDIT BUTTON CLICKED", task);
-
-    if (typeof onEditTask !== "function") {
-      console.error("onEditTask is missing from TaskList.jsx");
-      return;
+    if (typeof onEditTask === "function") {
+      onEditTask(task);
     }
-
-    onEditTask(task);
   }
 
   return (
     <li className="task-item">
-      <h3>{task.title}</h3>
+      <div className="task-item-header">
+        <div className="task-title-group">
+          <h3>{task.title}</h3>
+          <span className={`priority-badge priority-${priority}`}>
+            {priority} priority
+          </span>
+        </div>
 
-      <p>{task.description || "No description provided."}</p>
+        <span
+          className={`status-badge status-${task.status || "pending"}`}
+        >
+          {statusLabel}
+        </span>
+      </div>
 
-      <p>
-        <strong>Priority:</strong>{" "}
-        {task.priority
-          ? task.priority.charAt(0).toUpperCase() + task.priority.slice(1)
-          : "Medium"}
+      <p className="task-description">
+        {task.description || "No description provided."}
       </p>
 
-      <p>
-        <strong>Status:</strong>{" "}
-        {task.status === "in-progress"
-          ? "In Progress"
-          : task.status.charAt(0).toUpperCase() + task.status.slice(1)}
-      </p>
+      <div className="task-metadata">
+        <div className="task-metadata-item">
+          <span className="metadata-label">Due date</span>
+          <span className="metadata-value">
+            {formatDueDate(task.dueDate)}
+          </span>
+        </div>
 
-      <p>
-        <strong>Due date:</strong> {formatDueDate(task.dueDate)}
-      </p>
-
-      <span className={`due-badge ${dueDateStatus.className}`}>
-        {dueDateStatus.label}
-      </span>
+        <div className="task-metadata-item">
+          <span className="metadata-label">Deadline</span>
+          <span className={`due-badge ${dueDateStatus.className}`}>
+            {dueDateStatus.label}
+          </span>
+        </div>
+      </div>
 
       <div className="task-actions">
-        <label htmlFor={`status-${task._id}`}>Change status</label>
+        <div className="task-status-control">
+          <label htmlFor={`status-${task._id}`}>
+            Update status
+          </label>
 
-        <select
-          id={`status-${task._id}`}
-          value={task.status}
-          onChange={(event) =>
-            onStatusChange(task._id, { status: event.target.value })
-          }
-          aria-label={`Change status for ${task.title}`}
-        >
-          <option value="pending">Pending</option>
-          <option value="in-progress">In Progress</option>
-          <option value="completed">Completed</option>
-        </select>
+          <select
+            id={`status-${task._id}`}
+            value={task.status}
+            onChange={(event) =>
+              onStatusChange(task._id, {
+                status: event.target.value,
+              })
+            }
+            aria-label={`Change status for ${task.title}`}
+          >
+            <option value="pending">Pending</option>
+            <option value="in-progress">In Progress</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
 
-        <button type="button" onClick={handleEdit}>
-          Edit Task
-        </button>
+        <div className="task-action-buttons">
+          <button
+            className="secondary-button"
+            type="button"
+            onClick={handleEdit}
+          >
+            Edit task
+          </button>
 
-        <button
-          type="button"
-          onClick={() => onTaskDelete(task._id)}
-        >
-          Delete Task
-        </button>
+          <button
+            className="danger-button"
+            type="button"
+            onClick={() => onTaskDelete(task._id)}
+          >
+            Delete
+          </button>
+        </div>
       </div>
     </li>
   );
 }
 
-export default TaskItem;  
-
-
- 
-
-
+export default TaskItem;

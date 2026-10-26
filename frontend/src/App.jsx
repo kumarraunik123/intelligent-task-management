@@ -66,7 +66,6 @@ function App() {
     }
 
     loadTasks(1, filters);
-
     // Reload tasks when filters or sorting change.
   }, [
     user,
@@ -156,7 +155,7 @@ function App() {
   }
 
   return (
-    <main>
+    <main className="app-shell">
       <header className="app-header">
         <div>
           <h1>Intelligent Task Management</h1>
@@ -182,43 +181,54 @@ function App() {
         </div>
       )}
 
-      <TaskSummary tasks={tasks} />
+      <section className="dashboard-summary">
+        <TaskSummary tasks={tasks} />
+      </section>
 
-      <TaskForm
-        onTaskCreated={handleTaskCreated}
-        editingTask={editingTask}
-        onTaskUpdated={handleTaskUpdated}
-        onCancelEdit={() => setEditingTask(null)}
-      />
+      <div className="dashboard-layout">
+        <aside className="dashboard-sidebar">
+          <TaskForm
+            onTaskCreated={handleTaskCreated}
+            editingTask={editingTask}
+            onTaskUpdated={handleTaskUpdated}
+            onCancelEdit={() => setEditingTask(null)}
+          />
 
-      <h2>Your Tasks ({totalTasks})</h2>
+          <TaskFilters
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+            priorityFilter={priorityFilter}
+            setPriorityFilter={setPriorityFilter}
+            dueDateFilter={dueDateFilter}
+            setDueDateFilter={setDueDateFilter}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
+            onClearFilters={handleClearFilters}
+          />
+        </aside>
 
-      <TaskFilters
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-        priorityFilter={priorityFilter}
-        setPriorityFilter={setPriorityFilter}
-        dueDateFilter={dueDateFilter}
-        setDueDateFilter={setDueDateFilter}
-        sortBy={sortBy}
-        setSortBy={setSortBy}
-        onClearFilters={handleClearFilters}
-      />
+        <section className="dashboard-main">
+          <h2 className="tasks-heading">
+            Your Tasks
+            <span className="task-count">{totalTasks}</span>
+          </h2>
 
-      <TaskList
-        tasks={tasks}
-        loading={loading}
-        error={error}
-        onRetry={handleRetry}
-        onStatusChange={handleStatusChange}
-        onTaskDelete={handleTaskDelete}
-        onEditTask={setEditingTask}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={handlePageChange}
-      />
+          <TaskList
+            tasks={tasks}
+            loading={loading}
+            error={error}
+            onRetry={handleRetry}
+            onStatusChange={handleStatusChange}
+            onTaskDelete={handleTaskDelete}
+            onEditTask={setEditingTask}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        </section>
+      </div>
     </main>
   );
 }
