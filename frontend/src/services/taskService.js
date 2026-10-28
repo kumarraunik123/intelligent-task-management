@@ -1,5 +1,5 @@
 
-const API_URL = "http://localhost:5000/api/tasks";
+const API_URL = "/api/tasks";
 
 // Get the JWT token saved after login.
 function getAuthHeaders(includeJson = false) {

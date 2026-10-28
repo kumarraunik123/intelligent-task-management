@@ -1,3 +1,4 @@
+
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
@@ -36,7 +37,8 @@ app.use(helmet());
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin:
+      process.env.CORS_ORIGIN || "http://localhost:5173",
   })
 );
 
@@ -83,4 +85,4 @@ if (require.main === module) {
   startServer();
 }
 
-module.exports = app;  s
+module.exports = app;

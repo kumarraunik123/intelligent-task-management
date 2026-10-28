@@ -1,5 +1,5 @@
 
-const API_URL = "http://localhost:5000/api/auth";
+const API_URL = "/api/auth";
 
 // Register a new user
 export async function registerUser(userData) {
