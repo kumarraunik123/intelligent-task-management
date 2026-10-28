@@ -1,4 +1,3 @@
-
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
@@ -41,12 +40,15 @@ app.use(
   })
 );
 
-app.use(express.json());
+// Parse JSON requests and reject bodies larger than 10 KB
+app.use(express.json({ limit: "10kb" }));
+
+// Log incoming requests
 app.use(requestLogger);
 
-// Health check route
+// Public health check
 app.get("/api/health", (req, res) => {
-  res.status(200).json({
+  return res.status(200).json({
     success: true,
     message: "Intelligent Task Management API is running",
   });
@@ -61,7 +63,7 @@ app.use("/api/tasks", apiLimiter, authMiddleware, taskRoutes);
 // Handle unknown routes
 app.use(notFoundHandler);
 
-// Centralized error handling (keep last)
+// Centralized error handling (must remain last)
 app.use(errorHandler);
 
 async function startServer() {
@@ -81,4 +83,4 @@ if (require.main === module) {
   startServer();
 }
 
-module.exports = app;
+module.exports = app;  s
