@@ -12,9 +12,33 @@ permissions:
   contents: read
 
 jobs:
+  test:
+    name: Run Backend Tests
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Run automated backend tests
+        run: npm test
+        working-directory: backend
+
   deploy:
     name: Deploy on EC2
     runs-on: [self-hosted, Linux, X64]
+    needs: test
 
     steps:
       - name: Checkout repository
@@ -55,4 +79,5 @@ jobs:
           done
 
           echo "Application health check failed."
-          exit 1  
+          exit 1
+
