@@ -44,12 +44,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Deploy application
+      - name: Deploy application with rollback
         shell: bash
         run: |
           set -euo pipefail
 
           cd /home/ubuntu/intelligent-task-management
+
+          SHORT_SHA="${GITHUB_SHA:0:7}"
+          BACKUP_TAG="rollback-${SHORT_SHA}-$(date -u +%Y%m%d%H%M%S)"
+
+          BACKEND_IMAGE="intelligent-task-management-backend"
+          FRONTEND_IMAGE="intelligent-task-management-frontend"
 
           echo "Fetching latest GitHub changes..."
           git fetch origin master
@@ -60,24 +66,63 @@ jobs:
           echo "Validating production configuration..."
           docker compose -f docker-compose.prod.yml config --quiet
 
-          echo "Building and starting production containers..."
-          docker compose -f docker-compose.prod.yml up -d --build
+          echo "Saving currently working Docker images..."
+          docker tag "${BACKEND_IMAGE}:latest" "${BACKEND_IMAGE}:${BACKUP_TAG}"
+          docker tag "${FRONTEND_IMAGE}:latest" "${FRONTEND_IMAGE}:${BACKUP_TAG}"
+
+          check_health() {
+            for attempt in {1..12}; do
+              if curl --fail --silent http://localhost:8080/api/health; then
+                echo
+                return 0
+              fi
+
+              echo "Waiting for application... ($attempt/12)"
+              sleep 5
+            done
+
+            return 1
+          }
+
+          rollback() {
+            echo "Deployment failed. Starting rollback..."
+
+            docker tag "${BACKEND_IMAGE}:${BACKUP_TAG}" "${BACKEND_IMAGE}:latest"
+            docker tag "${FRONTEND_IMAGE}:${BACKUP_TAG}" "${FRONTEND_IMAGE}:latest"
+
+            echo "Recreating containers with previous images..."
+            docker compose -f docker-compose.prod.yml up -d --no-build --force-recreate
+
+            echo "Checking rollback health..."
+            if check_health; then
+              echo "Rollback successful. Previous application restored."
+            else
+              echo "WARNING: Rollback health check failed. Manual investigation required."
+            fi
+          }
+
+          echo "Building and deploying new version..."
+          if ! docker compose -f docker-compose.prod.yml up -d --build; then
+            echo "Build or deployment failed."
+            rollback
+            exit 1
+          fi
+
+          echo "Checking new deployment health..."
+          if ! check_health; then
+            echo "New deployment health check failed."
+            rollback
+            exit 1
+          fi
+
+          echo "Tagging successful deployment..."
+          docker tag "${BACKEND_IMAGE}:latest" "${BACKEND_IMAGE}:${SHORT_SHA}"
+          docker tag "${FRONTEND_IMAGE}:latest" "${FRONTEND_IMAGE}:${SHORT_SHA}"
 
           echo "Checking production containers..."
           docker compose -f docker-compose.prod.yml ps
 
-          echo "Checking application health..."
-          for attempt in {1..12}; do
-            if curl --fail --silent http://localhost:8080/api/health; then
-              echo
-              echo "Deployment successful!"
-              exit 0
-            fi
-
-            echo "Waiting for application... ($attempt/12)"
-            sleep 5
-          done
-
-          echo "Application health check failed."
-          exit 1
+          echo "Deployment successful!"
+          echo "Version: ${SHORT_SHA}"
+          echo "Rollback backup: ${BACKUP_TAG}"
 
