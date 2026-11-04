@@ -1,0 +1,58 @@
+
+name: Deploy Intelligent Task Management
+
+on:
+  push:
+    branches:
+      - master
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy on EC2
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy application
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cd /home/ubuntu/intelligent-task-management
+
+          echo "Fetching latest GitHub changes..."
+          git fetch origin master
+
+          echo "Updating EC2 project..."
+          git merge --ff-only origin/master
+
+          echo "Validating production configuration..."
+          docker compose -f docker-compose.prod.yml config --quiet
+
+          echo "Building and starting production containers..."
+          docker compose -f docker-compose.prod.yml up -d --build
+
+          echo "Checking production containers..."
+          docker compose -f docker-compose.prod.yml ps
+
+          echo "Checking application health..."
+          for attempt in {1..12}; do
+            if curl --fail --silent http://localhost:8080/api/health; then
+              echo
+              echo "Deployment successful!"
+              exit 0
+            fi
+
+            echo "Waiting for application... ($attempt/12)"
+            sleep 5
+          done
+
+          echo "Application health check failed."
+          exit 1  
