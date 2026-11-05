@@ -41,10 +41,30 @@ jobs:
         run: npm test
         working-directory: backend
 
+  security:
+    name: Scan Project with Trivy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Scan source code and dependencies
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,misconfig,secret
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          format: table
+          exit-code: '0'
+
   deploy:
     name: Deploy on EC2
     runs-on: [self-hosted, Linux, X64]
-    needs: test
+    needs: [test, security]
     timeout-minutes: 30
 
     steps:
@@ -82,7 +102,6 @@ jobs:
               echo "Checking frontend and backend... ($attempt/12)"
 
               if curl --fail --silent --show-error http://localhost:8080/ --output /dev/null; then
-
                 API_RESPONSE="$(curl --fail --silent --show-error http://localhost:8080/api/health)" || API_RESPONSE=""
 
                 if [[ "$API_RESPONSE" == *'"success":true'* ]]; then
