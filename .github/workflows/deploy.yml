@@ -1,3 +1,4 @@
+
 name: Deploy Intelligent Task Management
 
 on:
@@ -10,10 +11,16 @@ on:
 permissions:
   contents: read
 
+# Prevent overlapping production deployments.
+concurrency:
+  group: intelligent-task-management-production
+  cancel-in-progress: false
+
 jobs:
   test:
     name: Run Backend Tests
     runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 15
 
     steps:
       - name: Checkout repository
@@ -38,6 +45,7 @@ jobs:
     name: Deploy on EC2
     runs-on: [self-hosted, Linux, X64]
     needs: test
+    timeout-minutes: 30
 
     steps:
       - name: Checkout repository
@@ -73,10 +81,8 @@ jobs:
             for attempt in {1..12}; do
               echo "Checking frontend and backend... ($attempt/12)"
 
-              # Check frontend homepage
               if curl --fail --silent --show-error http://localhost:8080/ --output /dev/null; then
 
-                # Check backend API
                 API_RESPONSE="$(curl --fail --silent --show-error http://localhost:8080/api/health)" || API_RESPONSE=""
 
                 if [[ "$API_RESPONSE" == *'"success":true'* ]]; then
