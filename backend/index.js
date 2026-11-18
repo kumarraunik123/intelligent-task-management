@@ -19,6 +19,7 @@ const {
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+app.set("trust proxy", 1);
 
 // Rate limit API requests
 const apiLimiter = rateLimit({
@@ -82,7 +83,10 @@ async function startServer() {
 }
 
 if (require.main === module) {
-  startServer();
+  startServer().catch((error) => {
+    console.error("Unexpected server startup error:", error);
+    process.exit(1);
+  });
 }
 
 module.exports = app;
